@@ -80,7 +80,7 @@ function opp() {
             local totp_value
             totp_value=$(op item get "$uuid" --format json | jq -r '.fields[] | select(.type == "OTP") | .totp')
             if [ -n "$totp_value" ] && [ "$totp_value" != "null" ]; then
-                echo "$totp_value"
+                copy_to_clipboard "$totp_value" "TOTP code"
             else
                 echo "No TOTP field found for this item." >&2
                 return 1
@@ -137,17 +137,18 @@ get_password() {
 }
 
 copy_to_clipboard() {
-    local password="$1"
+    local content="$1"
+    local content_type="${2:-Password}"
     if command -v xclip &> /dev/null; then
-        echo -n "$password" | xclip -selection clipboard
-        echo -n "$password" | xclip -selection primary
-        echo "Password copied to clipboard (xclip)."
+        echo -n "$content" | xclip -selection clipboard
+        echo -n "$content" | xclip -selection primary
+        echo "$content_type copied to clipboard (xclip)."
     elif command -v pbcopy &> /dev/null; then
-        echo -n "$password" | pbcopy
-        echo "Password copied to clipboard (pbcopy)."
+        echo -n "$content" | pbcopy
+        echo "$content_type copied to clipboard (pbcopy)."
     elif command -v clip.exe &> /dev/null; then
-        echo -n "$password" | clip.exe
-        echo "Password copied to clipboard (clip.exe)."
+        echo -n "$content" | clip.exe
+        echo "$content_type copied to clipboard (clip.exe)."
     else
         echo "No clipboard utility found (xclip, pbcopy, or clip.exe). Use --reveal to print the password in the terminal." >&2
         return 1

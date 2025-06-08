@@ -20,6 +20,8 @@ You can also extract TOTP (Time-based One-Time Password) codes:
 opp Github --totp
 ```
 
+This will copy the TOTP code to the clipboard, just like passwords.
+
 If there are no matches, this is reported as an error.
 
 If multiple matches are found, the items are provided as an indexed list. Use the index to get the specific item:
