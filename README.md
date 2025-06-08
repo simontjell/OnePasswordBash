@@ -76,9 +76,16 @@ brew install jq
 3. For clipboard support, install [Win32yank](https://github.com/equalsraf/win32yank) or use [clip.exe](https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/clip) (included in Windows 10+).
 
 
-## Sourcing the script
+## 📖 Sourcing the script
 
 After installing dependencies, source the script in e.g. your Bash profile:
 ```bash
 source /path/to/opp.sh
+```
+
+The script includes bash completion for flags. After sourcing, you can use Tab to autocomplete `--raw`, `--reveal`, and `--totp` flags:
+
+```bash
+opp github --<TAB>    # Shows: --raw --reveal --totp
+opp github 2 --<TAB>  # Shows: --raw --reveal --totp
 ```

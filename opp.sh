@@ -42,6 +42,7 @@ function opp() {
         esac
         shift
     done
+    
     local items_json_raw
     items_json_raw=$(op item list --format json 2>&1)
     if echo "$items_json_raw" | grep -q 'You are not currently signed in'; then
@@ -61,13 +62,14 @@ function opp() {
         return 1
     fi
     local items_json
-    # Filtrér tomme linjer fra items_json
-    items_json=$(echo "$items_json_raw" | jq -c ".[] | select(.title | test(\"$search_term\"; \"i\"))" | grep -v '^$')
+    # Filter and sort by UUID to ensure consistent ordering
+    items_json=$(echo "$items_json_raw" | jq -c "[.[] | select(.title | test(\"$search_term\"; \"i\"))] | sort_by(.id) | .[]")
     local op_status=${PIPESTATUS[0]}
     if [ $op_status -ne 0 ]; then
         echo "No items found or unable to access 1Password CLI (op)." >&2
         return 1
     fi
+    
     local count
     count=$(echo "$items_json" | grep -c .)
     handle_single_result() {
@@ -89,6 +91,10 @@ function opp() {
         fi
         local password
         password=$(get_password "$uuid")
+        if [ -z "$password" ] || [ "$password" == "null" ]; then
+            echo "No password field found for this item." >&2
+            return 1
+        fi
         if [ -n "$reveal_output" ]; then
             echo "$password"
         else
@@ -121,8 +127,9 @@ function opp() {
             return 0
         else
             local uuid
-            uuid=$(echo "$items_json" | sed -n "${index}p" | jq -r '.id')
-            if [ -z "$uuid" ]; then
+            # Convert the newline-separated JSON objects to an array and get the item at index
+            uuid=$(echo "$items_json" | jq -s -r ".[$((index-1))].id" 2>/dev/null)
+            if [ -z "$uuid" ] || [ "$uuid" == "null" ]; then
                 echo "Invalid index: $index" >&2
                 return 1
             fi
@@ -133,7 +140,21 @@ function opp() {
 
 get_password() {
     local uuid="$1"
-    op item get "$uuid" --reveal --field password
+    # Try different common password field names in order of preference
+    local password
+    password=$(op item get "$uuid" --reveal --field password 2>/dev/null)
+    if [ -z "$password" ]; then
+        password=$(op item get "$uuid" --reveal --field credential 2>/dev/null)
+    fi
+    if [ -z "$password" ]; then
+        # Fallback: try to find any concealed field that might contain a password
+        password=$(op item get "$uuid" --format json | jq -r '.fields[] | select(.type == "CONCEALED") | .value' | head -n1 2>/dev/null)
+    fi
+    # Return empty string if password is "null" from jq
+    if [ "$password" == "null" ]; then
+        password=""
+    fi
+    echo "$password"
 }
 
 copy_to_clipboard() {
@@ -154,3 +175,32 @@ copy_to_clipboard() {
         return 1
     fi
 }
+
+# Bash completion for opp command
+_opp_completion() {
+    local cur prev opts
+    COMPREPLY=()
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    
+    # Available options
+    opts="--raw --reveal --totp"
+    
+    # If current word starts with -, complete with flags
+    if [[ ${cur} == -* ]]; then
+        COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+        return 0
+    fi
+    
+    # If previous word was opp and current doesn't start with -, don't complete
+    # (let user type search term freely)
+    if [[ ${prev} == "opp" ]] && [[ ${cur} != -* ]]; then
+        return 0
+    fi
+    
+    # For other positions, offer flags
+    COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )
+}
+
+# Register completion function
+complete -F _opp_completion opp
