@@ -22,9 +22,14 @@ If multiple matches are found, the items are provided as an indexed list. Use th
 opp Github 2
 ```
 
-And item can also be fetched with its full content:
+An item can also be fetched with its full content:
 ```bash
 opp Github 2 --raw
+```
+
+Or for a single match:
+```bash
+opp Github --raw
 ```
 
 This will provide the item in JSON format.

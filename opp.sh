@@ -8,18 +8,36 @@ function opp() {
         return 1
     fi
     if [ -z "$1" ]; then
-        echo "Usage: opp <search_term> [index]" >&2
+        echo "Usage: opp <search_term> [index] [--raw|--reveal]" >&2
         return 1
     fi
+    
     local search_term="$1"
-    local index="$2"
+    local index=""
     local raw_output=""
     local reveal_output=""
-    if [ "$3" == "--raw" ]; then
-        raw_output=1
-    elif [ "$3" == "--reveal" ]; then
-        reveal_output=1
-    fi
+    
+    # Parse arguments
+    shift
+    while [ $# -gt 0 ]; do
+        case "$1" in
+            --raw)
+                raw_output=1
+                ;;
+            --reveal)
+                reveal_output=1
+                ;;
+            *)
+                if [[ "$1" =~ ^[0-9]+$ ]]; then
+                    index="$1"
+                else
+                    echo "Error: Invalid argument '$1'" >&2
+                    return 1
+                fi
+                ;;
+        esac
+        shift
+    done
     local items_json_raw
     items_json_raw=$(op item list --format json 2>&1)
     if echo "$items_json_raw" | grep -q 'You are not currently signed in'; then
@@ -84,7 +102,7 @@ function opp() {
                 fi
                 i=$((i+1))
             done
-            echo "Multiple matches found. Run: opp '$search_term' <index>"
+            echo "Multiple matches found. Run: opp '$search_term' <index> [--raw|--reveal]"
             return 0
         else
             local uuid
