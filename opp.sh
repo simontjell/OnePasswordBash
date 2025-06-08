@@ -49,6 +49,9 @@ function opp() {
         elif command -v pbcopy &> /dev/null; then
             echo -n "$password" | pbcopy
             echo "Password copied to clipboard."
+        elif command -v clip.exe &> /dev/null; then
+            echo -n "$password" | clip.exe
+            echo "Password copied to clipboard."
         else
             echo "$password"
         fi
@@ -87,6 +90,9 @@ function opp() {
                 echo "Password copied to clipboard."
             elif command -v pbcopy &> /dev/null; then
                 echo -n "$password" | pbcopy
+                echo "Password copied to clipboard."
+            elif command -v clip.exe &> /dev/null; then
+                echo -n "$password" | clip.exe
                 echo "Password copied to clipboard."
             else
                 echo "$password"
