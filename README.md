@@ -1,7 +1,7 @@
 # OnePasswordBash
 A very simple bash function that helps find passwords using the 1Password CLI.
 
-![Demo](demo.gif)
+![Demo](demo_cropped.gif)
 
 ## Usage
 ```bash
