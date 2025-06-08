@@ -8,7 +8,7 @@ function opp() {
         return 1
     fi
     if [ -z "$1" ]; then
-        echo "Usage: opp <search_term> [index] [--raw|--reveal]" >&2
+        echo "Usage: opp <search_term> [index] [--raw|--reveal|--totp]" >&2
         return 1
     fi
     
@@ -16,6 +16,7 @@ function opp() {
     local index=""
     local raw_output=""
     local reveal_output=""
+    local totp_output=""
     
     # Parse arguments
     shift
@@ -26,6 +27,9 @@ function opp() {
                 ;;
             --reveal)
                 reveal_output=1
+                ;;
+            --totp)
+                totp_output=1
                 ;;
             *)
                 if [[ "$1" =~ ^[0-9]+$ ]]; then
@@ -72,6 +76,17 @@ function opp() {
             op item get "$uuid" --format json
             return $?
         fi
+        if [ -n "$totp_output" ]; then
+            local totp_value
+            totp_value=$(op item get "$uuid" --format json | jq -r '.fields[] | select(.type == "OTP") | .totp')
+            if [ -n "$totp_value" ] && [ "$totp_value" != "null" ]; then
+                echo "$totp_value"
+            else
+                echo "No TOTP field found for this item." >&2
+                return 1
+            fi
+            return 0
+        fi
         local password
         password=$(get_password "$uuid")
         if [ -n "$reveal_output" ]; then
@@ -102,7 +117,7 @@ function opp() {
                 fi
                 i=$((i+1))
             done
-            echo "Multiple matches found. Run: opp '$search_term' <index> [--raw|--reveal]"
+            echo "Multiple matches found. Run: opp '$search_term' <index> [--raw|--reveal|--totp]"
             return 0
         else
             local uuid

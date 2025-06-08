@@ -14,6 +14,12 @@ opp Github --reveal
 
 NOTE: If the `--reveal` flag is used, it disables clipboard functionality entirely and displays the raw password instead.
 
+You can also extract TOTP (Time-based One-Time Password) codes:
+
+```bash
+opp Github --totp
+```
+
 If there are no matches, this is reported as an error.
 
 If multiple matches are found, the items are provided as an indexed list. Use the index to get the specific item:
@@ -33,6 +39,11 @@ opp Github --raw
 ```
 
 This will provide the item in JSON format.
+
+You can also get TOTP codes from indexed matches:
+```bash
+opp Github 2 --totp
+```
 
 ## Installation
 
