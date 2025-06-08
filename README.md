@@ -6,7 +6,13 @@ A very simple bash function that helps find passwords using the 1Password CLI.
 opp Github
 ```
 
-If there is a single match for 'Github', the password will be copied to the clipboard.
+If there is a single match for 'Github', the password will be copied to the clipboard. If no clipboard utility is found, the raw password can be displayed by using an explicit flag:
+
+```bash
+opp Github --reveal
+```
+
+NOTE: If the `--reveal` flag is used, it disables clipboard functionality entirely and displays the raw password instead.
 
 If there are no matches, this is reported as an error.
 
@@ -21,7 +27,7 @@ And item can also be fetched with its full content:
 opp Github 2 --raw
 ```
 
-This wil provide the item in JSON format.
+This will provide the item in JSON format.
 
 ## Installation
 
